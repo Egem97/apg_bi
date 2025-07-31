@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Aplicación principal de dashboards
+  dashboard-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: apg-bi-dashboard
+    ports:
+      - "8777:8777"
+    volumes:
+      # Montar configuración principal (editable sin rebuild)
+      - ./config.yaml:/app/config.yaml:ro
+      # Volumen para logs
+      - ./logs:/app/logs
+      # Volumen para assets si hay cambios
+      - ./assets:/app/assets:ro
+      # Volumen para recursos
+      - ./resource:/app/resource:ro
+    depends_on:
+      - postgres-db
+    restart: unless-stopped
+    networks:
+      - dashboard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8777/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Base de datos PostgreSQL
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: apg-bi-postgres
+    environment:
+      - POSTGRES_DB=apg_bi
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=es_ES.UTF-8 --lc-ctype=es_ES.UTF-8
+    volumes:
+      # Persistir datos de la base de datos
+      - postgres_data:/var/lib/postgresql/data
+      # Scripts de inicialización (opcional)
+      - ./docker/init-db:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - dashboard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d apg_bi"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  # Redis para cache (opcional pero recomendado)
+  redis-cache:
+    image: redis:7-alpine
+    container_name: apg-bi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - dashboard-network
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # Nginx como reverse proxy (opcional para producción)
+  nginx:
+    image: nginx:alpine
+    container_name: apg-bi-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - dashboard-app
+    restart: unless-stopped
+    networks:
+      - dashboard-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  dashboard-network:
+    driver: bridge

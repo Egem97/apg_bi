@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Aplicación en modo desarrollo
+  dashboard-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: apg-bi-dashboard-dev
+    ports:
+      - "8777:8777"
+    volumes:
+      # Montar código fuente para hot reload
+      - .:/app
+      - /app/__pycache__
+      - /app/.git
+      - /app/env
+      # Usar configuración específica de desarrollo
+      - ./config.dev.yaml:/app/config.yaml:ro
+    depends_on:
+      - postgres-db
+    restart: unless-stopped
+    networks:
+      - dashboard-dev-network
+
+  # Base de datos PostgreSQL para desarrollo
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: apg-bi-postgres-dev
+    environment:
+      - POSTGRES_DB=apg_bi_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin123
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Puerto diferente para no conflictar con producción
+    restart: unless-stopped
+    networks:
+      - dashboard-dev-network
+
+volumes:
+  postgres_dev_data:
+    driver: local
+
+networks:
+  dashboard-dev-network:
+    driver: bridge

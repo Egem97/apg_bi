@@ -1,0 +1,47 @@
+# Dockerfile para desarrollo con hot reload
+FROM python:3.11-slim
+
+# Variables de entorno para desarrollo
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias del sistema + herramientas de desarrollo
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libpq-dev \
+    curl \
+    git \
+    vim \
+    htop \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements y instalar dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Instalar herramientas adicionales para desarrollo
+RUN pip install --no-cache-dir \
+    watchdog \
+    ipython \
+    jupyter \
+    black \
+    flake8 \
+    pytest
+
+# Copiar código (en desarrollo se monta como volumen)
+COPY . .
+
+# No crear usuario especial en desarrollo para facilitar debugging
+# Exponer puerto
+EXPOSE 8777
+
+# Comando de inicio para desarrollo
+CMD ["python", "app.py"]

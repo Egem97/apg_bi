@@ -1,0 +1,82 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+*.md
+docs/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# Environment files (copiaremos solo los necesarios)
+.env.local
+.env.development
+.env.staging
+
+# Cache y temporales
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node modules si hay algún asset frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
