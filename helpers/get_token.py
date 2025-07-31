@@ -1,6 +1,8 @@
 import requests
 from typing import Optional
 from constants import MICROSOFT_GRAPH_TENANT_ID, MICROSOFT_GRAPH_CLIENT_ID, MICROSOFT_GRAPH_CLIENT_SECRET
+from helpers.config import load_config
+config = load_config()
 
 def get_access_token() -> Optional[str]:
     """
